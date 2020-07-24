@@ -1,20 +1,17 @@
 import typer
-
 app = typer.Typer()
 
+from . import database as db
 
 @app.command()
-def hello(name: str):
-    typer.echo(f"Hello {name}")
-
-
-@app.command()
-def goodbye(name: str, formal: bool = False):
-    if formal:
-        typer.echo(f"Goodbye Ms. {name}. Have a good day.")
-    else:
-        typer.echo(f"Bye {name}!")
-
+def migrate():
+  def get_migrations(tx):
+    return tx.run("""
+      MATCH (m:MIGRATION) RETURN m ORDER BY m.created_at ASC;
+    """)
+  
+  results = db.read(get_migrations)
+  typer.echo(f"{[result for result in results]}")
 
 if __name__ == "__main__":
     app()
